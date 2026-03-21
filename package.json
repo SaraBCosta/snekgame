@@ -6,8 +6,6 @@
     "start": "electron ."
   },
   "dependencies": {
-    "choco": "^0.2.1",
-    "nodemon": "^3.1.14"
   },
   "devDependencies": {
     "electron": "^40.8.0"
