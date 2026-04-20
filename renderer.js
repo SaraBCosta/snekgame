@@ -17,7 +17,8 @@ let snakelength = 1;
 
 
 
-let snakeBody = [{ x: 4, y: 4 }];
+let snakeHead = { x: 4, y: 4 };
+let snakeBody = [];
 let direction = { x: 1, y: 0 };
 let pendingDirection = { x: 1, y: 0 };
 let items = [];
@@ -31,7 +32,8 @@ function hasItemAt(x, y) {
 }
 
 function isSnakeAt(x, y) {
-    return snakeBody.some((segment) => segment.x === x && segment.y === y);
+    return (snakeHead.x === x && snakeHead.y === y)
+        || snakeBody.some((segment) => segment.x === x && segment.y === y);
 }
 
 function spawnItem() {
@@ -64,9 +66,12 @@ function render() {
         let row = '';
 
         for (let x = 0; x < GRID_SIZE; x++) {
-            const isSnakeSegment = snakeBody.some(segment => segment.x === x && segment.y === y);
+            const isHead = snakeHead.x === x && snakeHead.y === y;
+            const isBody = snakeBody.some(segment => segment.x === x && segment.y === y);
 
-            if (isSnakeSegment) {
+            if (isHead) {
+                row += '<span class="cell player">🟢</span>';
+            } else if (isBody) {
                 row += '<span class="cell snakeBody">🐍</span>';
             } else if (hasItemAt(x, y)) {
                 row += '<span class="cell item">🍎</span>';
@@ -84,16 +89,25 @@ function render() {
 function tick() {
     direction = pendingDirection;
 
-    const head = snakeBody[0];
-    const nextX = head.x + direction.x;
-    const nextY = head.y + direction.y;
-   
+    const nextX = snakeHead.x + direction.x;
+    const nextY = snakeHead.y + direction.y;
 
-    if (nextX >= 0 && nextX < GRID_SIZE && nextY >= 0 && nextY < GRID_SIZE) {
-        snakeBody.unshift({ x: nextX, y: nextY });
+    if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
+        stopGame('Game over! You hit the wall.');
+        return;
     }
 
-    const eatenIndex = items.findIndex((item) => item.x === snakeBody[0].x && item.y === snakeBody[0].y);
+    const hitSelf = snakeBody.some((segment) => segment.x === nextX && segment.y === nextY);
+    if (hitSelf) {
+        stopGame('Game over! You hit yourself.');
+        return;
+    }
+
+    const eatenIndex = items.findIndex((item) => item.x === nextX && item.y === nextY);
+    const previousHead = { x: snakeHead.x, y: snakeHead.y };
+    snakeHead = { x: nextX, y: nextY };
+    snakeBody.unshift(previousHead);
+
     if (eatenIndex !== -1) {
         score += 1;
         items[eatenIndex] = spawnItem();
@@ -107,9 +121,11 @@ function tick() {
             aummentGridSize();
         }
     }
-    
-if(snakeBody.length > snakelength) {
-    snakeBody.pop();}
+
+    const maxBodyLength = Math.max(0, snakelength - 1);
+    if (snakeBody.length > maxBodyLength) {
+        snakeBody.pop();
+    }
 
     steps += 1;
     render();
@@ -156,12 +172,12 @@ function main() {
         stopGame('Game stopped.');
         return;
     }
-    snakeBody = [{ x: 4, y: 4 }];
+    snakeHead = { x: 4, y: 4 };
+    snakeBody = [];
     snakelength=1;
     score = 0;
     steps = 0;
     level = 1;
-    snakeBody = [{ x: 4, y: 4 }];
     direction = { x: 1, y: 0 };
     pendingDirection = { x: 1, y: 0 };
     items = [];

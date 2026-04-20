@@ -60,6 +60,10 @@ h1 {
     font-weight: bold;
 }
 
+#output .snakeBody {
+    color: #145214;
+}
+
 #output .empty {
     color: #333;
 }
